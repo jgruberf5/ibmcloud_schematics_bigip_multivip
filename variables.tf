@@ -1,15 +1,15 @@
 ##################################################################################
-# region - The VPC region to instatiate the F5 BIG-IP instance
+# region - The VPC region to instantiate the F5 BIG-IP instance
 ##################################################################################
 variable "region" {
   type        = string
   default     = "us-south"
-  description = "The VPC region to instatiate the F5 BIG-IP instance"
+  description = "The VPC region to instantiate the F5 BIG-IP instance"
 }
 # Present for CLI testng
 #variable "api_key" {
 #  type        = string
-#  default     = ""
+#  default     = "G6KI2sTEj6BxvCiUkc5SfTKOjy2oDoFHj-r-FkGg73b8"
 #  description = "IBM Public Cloud API KEY"
 #}
 
@@ -101,10 +101,10 @@ variable "data_internal_subnet_id" {
 variable "internal_snat_pool_count" {
   type        = number
   default     = 1
-  description = "Can be 1 (Automap), 2 (/31), 4 (/30), 8 (/29), 16 (/28)"
+  description = "Can be 1 (Automap), 8 (/29), 16 (/28)"
   validation {
     condition     = contains([1, 8, 16], var.internal_snat_pool_count)
-    error_message = "Variable internal_snat_pool_count can be 1 (automap), 2, 4, 8, 16."
+    error_message = "Variable internal_snat_pool_count can be 1 (automap), 8, 16."
   }
 }
 
@@ -123,10 +123,10 @@ variable "data_external_subnet_id" {
 variable "external_virtual_address_count" {
   type        = number
   default     = 1
-  description = "Can be 1 (SelfIP), 2 (/31), 4 (/30), 8 (/29), 16 (/28)"
+  description = "Can be 1 (SelfIP), 8 (/29), 16 (/28)"
   validation {
     condition     = contains([1, 8, 16], var.external_virtual_address_count)
-    error_message = "Variable external_virtual_address_count can be 1 (automap), 2, 4, 8, 16."
+    error_message = "Variable external_virtual_address_count can be 1 (automap), 8, 16."
   }
 }
 
@@ -161,13 +161,13 @@ variable "user_data_template_url" {
 }
 variable "user_data_basic_auth_username" {
   default     = ""
-  description = "Basic auth username to aquire the user_data"
+  description = "Basic auth username to acquire the user_data"
 }
 variable "user_data_basic_auth_password" {
   default     = ""
-  description = "Basic auth password to aquire the user_data"
+  description = "Basic auth password to acquire the user_data"
 }
 variable "user_data_github_personal_access_token" {
   default     = ""
-  description = "Github personal access token to aquire the user_data"
+  description = "Github personal access token to acquire the user_data"
 }
