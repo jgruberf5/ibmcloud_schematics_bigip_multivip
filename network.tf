@@ -58,7 +58,8 @@ resource "ibm_is_subnet" "f5_snat_subnet" {
 }
 
 data "ibm_is_subnet" "f5_snat_subnet_data" {
-  identifier = ibm_is_subnet.f5_snat_subnet.id
+  identifier = ibm_is_subnet.f5_snat_subnet[0].id
+  count = var.internal_snat_pool_count == 1 ? 0 : 1
 }
 
 // Virtual Addresses Subnet
@@ -76,5 +77,6 @@ resource "ibm_is_subnet" "f5_vip_subnet" {
 }
 
 data "ibm_is_subnet" "f5_vip_subnet_data" {
-  identifier = ibm_is_subnet.f5_vip_subnet.id
+  identifier = ibm_is_subnet.f5_vip_subnet[0].id
+  count = var.external_virtual_address_count == 1 ? 0 : 1
 }
