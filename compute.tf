@@ -186,7 +186,7 @@ output "resource_status" {
 
 output "VPC" {
   value = ibm_is_instance.f5_ve_instance.vpc
-#}
+}
 
 output "image_id" {
   value = local.image_id
