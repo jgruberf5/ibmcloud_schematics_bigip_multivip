@@ -103,7 +103,7 @@ variable "internal_snat_pool_count" {
   default     = 1
   description = "Can be 1 (Automap), 2 (/31), 4 (/30), 8 (/29), 16 (/28)"
   validation {
-    condition = contains([1,8,16], var.internal_snat_pool_count)
+    condition     = contains([1, 8, 16], var.internal_snat_pool_count)
     error_message = "Variable internal_snat_pool_count can be 1 (automap), 2, 4, 8, 16."
   }
 }
@@ -125,7 +125,7 @@ variable "external_virtual_address_count" {
   default     = 1
   description = "Can be 1 (SelfIP), 2 (/31), 4 (/30), 8 (/29), 16 (/28)"
   validation {
-    condition = contains([1,8,16], var.external_virtual_address_count)
+    condition     = contains([1, 8, 16], var.external_virtual_address_count)
     error_message = "Variable external_virtual_address_count can be 1 (automap), 2, 4, 8, 16."
   }
 }
@@ -134,7 +134,7 @@ variable "external_virtual_address_count" {
 # routing_table_ids - Routing tables to update with VIP and SNAT subnet SelfIPs
 ##################################################################################
 variable "routing_table_ids" {
-  type = list(string)
+  type    = list(string)
   default = []
 }
 
@@ -147,8 +147,8 @@ variable "phone_home_url" {
   description = "The URL to POST status when BIG-IP is finished onboarding"
 }
 variable "appid" {
-  type = string
-  default = ""
+  type        = string
+  default     = ""
   description = "Extra metadata key to include in phone_home_url call"
 }
 

@@ -46,10 +46,10 @@ resource "ibm_is_security_group_rule" "f5_allow_outbound" {
 // SNAT Pools Subnet
 
 resource "ibm_is_subnet" "f5_snat_subnet" {
-  name = "f5-snat-subnet-${uuid()}"
-  count = var.internal_snat_pool_count == 1 ? 0 : 1
-  vpc = data.ibm_is_subnet.f5_internal_subnet.vpc
-  zone = data.ibm_is_subnet.f5_internal_subnet.zone
+  name                     = "f5-snat-subnet-${uuid()}"
+  count                    = var.internal_snat_pool_count == 1 ? 0 : 1
+  vpc                      = data.ibm_is_subnet.f5_internal_subnet.vpc
+  zone                     = data.ibm_is_subnet.f5_internal_subnet.zone
   total_ipv4_address_count = var.internal_snat_pool_count
   timeouts {
     create = "60m"
@@ -59,16 +59,16 @@ resource "ibm_is_subnet" "f5_snat_subnet" {
 
 data "ibm_is_subnet" "f5_snat_subnet_data" {
   identifier = ibm_is_subnet.f5_snat_subnet[0].id
-  count = var.internal_snat_pool_count == 1 ? 0 : 1
+  count      = var.internal_snat_pool_count == 1 ? 0 : 1
 }
 
 // Virtual Addresses Subnet
 
 resource "ibm_is_subnet" "f5_vip_subnet" {
-  name = "f5-vip-subnet-${uuid()}"
-  count = var.external_virtual_address_count == 1 ? 0 : 1
-  vpc = data.ibm_is_subnet.f5_external_subnet.vpc
-  zone = data.ibm_is_subnet.f5_external_subnet.zone
+  name                     = "f5-vip-subnet-${uuid()}"
+  count                    = var.external_virtual_address_count == 1 ? 0 : 1
+  vpc                      = data.ibm_is_subnet.f5_external_subnet.vpc
+  zone                     = data.ibm_is_subnet.f5_external_subnet.zone
   total_ipv4_address_count = var.external_virtual_address_count
   timeouts {
     create = "60m"
@@ -78,5 +78,5 @@ resource "ibm_is_subnet" "f5_vip_subnet" {
 
 data "ibm_is_subnet" "f5_vip_subnet_data" {
   identifier = ibm_is_subnet.f5_vip_subnet[0].id
-  count = var.external_virtual_address_count == 1 ? 0 : 1
+  count      = var.external_virtual_address_count == 1 ? 0 : 1
 }
