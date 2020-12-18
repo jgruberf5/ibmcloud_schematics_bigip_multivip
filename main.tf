@@ -24,3 +24,8 @@ provider "ibm" {
 data "ibm_is_region" "region" {
   name = var.region
 }
+
+# resource group for the VE instance
+data "ibm_resource_group" "group" {
+  name = var.resource_group
+}

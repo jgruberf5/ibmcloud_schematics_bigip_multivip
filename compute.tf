@@ -1,8 +1,3 @@
-# resource group for the VE instance
-data "ibm_resource_group" "group" {
-  name = var.resource_group
-}
-
 # lookup SSH public keys by name
 data "ibm_is_ssh_key" "ssh_pub_key" {
   name = var.ssh_key_name
@@ -64,6 +59,11 @@ locals {
   image_id = data.ibm_is_image.tmos_custom_image.id == null ? lookup(local.public_image_map[var.tmos_image_name], var.region) : data.ibm_is_image.tmos_custom_image.id
   # public image takes priority over custom image
   # image_id = lookup(lookup(local.public_image_map, var.tmos_image_name, {}), var.region, data.ibm_is_image.tmos_custom_image.id)  
+
+  # user admin_password if supplied, else set a random password
+  admin_password = var.tmos_admin_password == "" ? random_password.password.result : var.tmos_admin_password
+  phone_home_url = var.phone_home_url == "" ? "null" : var.phone_home_url
+
   basic_auth_header_map = {
     "Authorization" = base64encode("${var.user_data_basic_auth_username}:${var.user_data_basic_auth_password}")
   }
@@ -71,10 +71,7 @@ locals {
     "Authorization" = "token ${var.user_data_github_personal_access_token}"
     "Accept"        = "application/vnd.github.v4.raw"
   }
-  # user admin_password if supplied, else set a random password
-  admin_password = var.tmos_admin_password == "" ? random_password.password.result : var.tmos_admin_password
   # set user_data YAML values or else set them to null for templating
-  phone_home_url = var.phone_home_url == "" ? "null" : var.phone_home_url
   http_headers_1 = var.user_data_basic_auth_username == "" ? {} : local.basic_auth_header_map
   http_headers_2 = var.user_data_github_personal_access_token == "" ? local.http_headers_1 : local.github_auth_header_map
 
@@ -116,9 +113,10 @@ data "template_file" "user_data" {
 
 # create compute instance
 resource "ibm_is_instance" "f5_ve_instance" {
-  name    = var.instance_name
-  image   = local.image_id
-  profile = data.ibm_is_instance_profile.instance_profile.id
+  name           = var.instance_name
+  resource_group = data.ibm_resource_group.group.id
+  image          = local.image_id
+  profile        = data.ibm_is_instance_profile.instance_profile.id
   primary_network_interface {
     name            = "management"
     subnet          = data.ibm_is_subnet.f5_management_subnet.id
@@ -130,20 +128,21 @@ resource "ibm_is_instance" "f5_ve_instance" {
     security_groups = [ibm_is_security_group.f5_open_sg.id]
   }
   network_interfaces {
-    name            = "data-internal"
-    subnet          = data.ibm_is_subnet.f5_internal_subnet.id
-    security_groups = [ibm_is_security_group.f5_open_sg.id]
+    name              = "data-internal"
+    subnet            = data.ibm_is_subnet.f5_internal_subnet.id
+    security_groups   = [ibm_is_security_group.f5_open_sg.id]
     allow_ip_spoofing = true
   }
   network_interfaces {
-    name            = "data-external"
-    subnet          = data.ibm_is_subnet.f5_external_subnet.id
-    security_groups = [ibm_is_security_group.f5_open_sg.id]
+    name              = "data-external"
+    subnet            = data.ibm_is_subnet.f5_external_subnet.id
+    security_groups   = [ibm_is_security_group.f5_open_sg.id]
     allow_ip_spoofing = true
   }
   vpc        = data.ibm_is_subnet.f5_management_subnet.vpc
   zone       = data.ibm_is_subnet.f5_management_subnet.zone
   keys       = [data.ibm_is_ssh_key.ssh_pub_key.id]
+  depends_on = [ibm_is_security_group_rule.f5_allow_outbound]
   user_data  = data.template_file.user_data.rendered
   timeouts {
     create = "60m"
@@ -172,34 +171,7 @@ resource "ibm_is_vpc_routing_table_route" "injected_vip_routes" {
   next_hop      = ibm_is_instance.f5_ve_instance.network_interfaces[2].primary_ipv4_address
 }
 
-output "routing_table_id_0" {
-  value = var.routing_table_ids[0]
-}
-
-output "routing_table_id_1" {
-  value = var.routing_table_ids[1]
-}
-
-output "routing_table_id_2" {
-  value = var.routing_table_ids[2]
-}
-output "vip_routing_destination" {
-  value = data.ibm_is_subnet.f5_vip_subnet_data[0].ipv4_cidr_block
-}
-
-output "vip_route_next_hop" {
-  value = ibm_is_instance.f5_ve_instance.network_interfaces[2].primary_ipv4_address
-}
-
-output "snat_routing_destination" {
-  value = data.ibm_is_subnet.f5_snat_subnet_data[0].ipv4_cidr_block
-}
-
-output "snat_route_next_hop" {
-  value = ibm_is_instance.f5_ve_instance.network_interfaces[1].primary_ipv4_address
-}
-
-output "resource_name" {
+output "instance_name" {
   value = ibm_is_instance.f5_ve_instance.name
 }
 
@@ -207,62 +179,82 @@ output "instance_id" {
   value = ibm_is_instance.f5_ve_instance.id
 }
 
-output "resource_status" {
+output "instance_status" {
   value = ibm_is_instance.f5_ve_instance.status
 }
 
-output "VPC" {
-  value = ibm_is_instance.f5_ve_instance.vpc
+output "image_name" {
+  value = var.tmos_image_name
 }
 
 output "image_id" {
   value = local.image_id
 }
+
 output "profile_id" {
   value = data.ibm_is_instance_profile.instance_profile.id
 }
+output "zone" {
+  value = data.ibm_is_subnet.f5_management_subnet.zone
+}
+output "vpc" {
+  value = ibm_is_instance.f5_ve_instance.vpc
+}
+output "ssh_key_name" {
+  value = data.ibm_is_ssh_key.ssh_pub_key.name
+}
 
+output "management_subnet_cidr" {
+  value = data.ibm_is_subnet.f5_management_subnet.ipv4_cidr_block
+}
+output "management_ip" {
+  value = ibm_is_instance.f5_ve_instance.primary_network_interface.primary_ipv4_address
+}
+output "cluster_subnet_cidr" {
+  value = data.ibm_is_subnet.f5_cluster_subnet.ipv4_cidr_block
+}
+
+output "cluster_ip" {
+  value = ibm_is_instance.f5_ve_instance.network_interfaces[0].primary_ipv4_address
+}
+
+output "data_internal_subnet_cidr" {
+  value = data.ibm_is_subnet.f5_internal_subnet.ipv4_cidr_block
+}
+
+output "internal_ip" {
+  value = ibm_is_instance.f5_ve_instance.network_interfaces[1].primary_ipv4_address
+}
+
+output "data_external_subnet_cidr" {
+  value = data.ibm_is_subnet.f5_external_subnet.ipv4_cidr_block
+}
+
+output "external_ip" {
+  value = ibm_is_instance.f5_ve_instance.network_interfaces[2].primary_ipv4_address
+}
+
+output "snat_routing_cidr" {
+  value = data.ibm_is_subnet.f5_snat_subnet_data[0].ipv4_cidr_block
+}
 output "snat_pool_addresses" {
   value = local.snat_pool_addresses
+}
+output "snat_route_next_hop" {
+  value = ibm_is_instance.f5_ve_instance.network_interfaces[1].primary_ipv4_address
+}
+
+output "vip_routing_cidr" {
+  value = data.ibm_is_subnet.f5_vip_subnet_data[0].ipv4_cidr_block
 }
 
 output "virtual_service_addresses" {
   value = local.virtual_service_addresses
 }
+output "vip_route_next_hop" {
+  value = ibm_is_instance.f5_ve_instance.network_interfaces[2].primary_ipv4_address
+}
+
 output "f5_phone_home_url" {
   value = var.phone_home_url
-}
-
-output "instance_name" {
-  value = var.instance_name
-}
-
-output "security_group_id" {
-  value = ibm_is_security_group.f5_open_sg.id
-}
-output "management_subnet_id" {
-  value = data.ibm_is_subnet.f5_management_subnet.id
-}
-output "cluster_subnet_id" {
-  value = data.ibm_is_subnet.f5_cluster_subnet.id
-}
-
-output "data_internal_subnet_id" {
-  value = data.ibm_is_subnet.f5_internal_subnet.id
-}
-
-output "data_external_subnet_id" {
-  value = data.ibm_is_subnet.f5_external_subnet.id
-}
-
-output "vpc" {
-  value = data.ibm_is_subnet.f5_management_subnet.vpc
-}
-
-output "zone" {
-  value = data.ibm_is_subnet.f5_management_subnet.zone
-}
-
-output "ssh_key_id" {
-  value = data.ibm_is_ssh_key.ssh_pub_key.id
 }
