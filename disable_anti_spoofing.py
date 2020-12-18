@@ -22,13 +22,9 @@ def allow_ip_spoofing(region, instance_id, network_interface_id):
             'Content-Type': 'application/json'
         })
         req.get_method = lambda: "PATCH"
-        res = urllib.request.urlopen(req, context=ctx)
-        if res.code > 399:
-            sys.stderr.write(
-                'PATCH request to allow_ip_spoofing failed with result code: %d' % res.code)
-            sys.exit(1)
+        urllib.request.urlopen(req, context=ctx)
     except Exception as ex:
-        sys.stderr.write('Error allowing ip spoofing on %s - %s : %s' % (instance_url, token, ex))
+        sys.stderr.write('Error allowing ip spoofing on %s : %s - %s' % (instance_url, ex.code, ex.read()))
         sys.exit(1)
 
 
