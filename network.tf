@@ -14,15 +14,9 @@ data "ibm_is_subnet" "f5_external_subnet" {
   identifier = var.data_external_subnet_id
 }
 
-locals {
-  secondary_subnets = compact(list(var.data_cluster_subnet_id, var.data_internal_subnet_id, var.data_external_subnet_id))
-}
-
-resource "random_uuid" "namer" {}
-
 // open up port security security group
 resource "ibm_is_security_group" "f5_open_sg" {
-  name           = "sg-${random_uuid.namer.result}"
+  name           = "sg-${uuid()}"
   vpc            = data.ibm_is_subnet.f5_management_subnet.vpc
   resource_group = data.ibm_is_subnet.f5_management_subnet.resource_group
 }
@@ -44,7 +38,6 @@ resource "ibm_is_security_group_rule" "f5_allow_outbound" {
 }
 
 // SNAT Pools Subnet
-
 resource "ibm_is_subnet" "f5_snat_subnet" {
   name                     = "f5-snat-subnet-${uuid()}"
   count                    = var.internal_snat_pool_count == 1 ? 0 : 1
