@@ -156,7 +156,7 @@ data "external" "disable_anti_spoofing_internal" {
   program = ["python", "${path.module}/disable_anti_spoofing.py"]
   query = {
     "instance_id" = ibm_is_instance.f5_ve_instance.id
-    "zone" = data.ibm_is_subnet.f5_management_subnet.zone
+    "region" = var.region
     "network_interface_id" = ibm_is_instance.f5_ve_instance.network_interfaces[1].id
   }
 }
@@ -166,7 +166,7 @@ data "external" "disable_anti_spoofing_external" {
   program = ["python", "${path.module}/disable_anti_spoofing.py"]
   query = {
     "instance_id" = ibm_is_instance.f5_ve_instance.id
-    "zone" = data.ibm_is_subnet.f5_management_subnet.zone
+    "region" = var.region
     "network_interface_id" = ibm_is_instance.f5_ve_instance.network_interfaces[2].id
   }
 }

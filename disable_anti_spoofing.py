@@ -7,8 +7,8 @@ import urllib.request
 import ssl
 
 
-def allow_ip_spoofing(zone, instance_id, network_interface_id):
-    endpoint_url = "https://%s.iaas.cloud.ibm.com" % zone
+def allow_ip_spoofing(region, instance_id, network_interface_id):
+    endpoint_url = "https://%s.iaas.cloud.ibm.com" % region
     instance_url = "%s/v1/instances/%s/network_interfaces/%s?version=2020-12-15&generation=2" % (
         endpoint_url, instance_id, network_interface_id)
     token = os.getenv('IC_IAM_TOKEN')
@@ -38,16 +38,16 @@ def main():
         sys.stderr.write(
             'instance id required to disable anti-spoofing on network-interfaces')
         sys.exit(1)
-    if 'zone' not in jsondata:
+    if 'region' not in jsondata:
         sys.stderr.write(
-            'zone is required to disable anti-spoofing on network-interfaces')
+            'region is required to disable anti-spoofing on network-interfaces')
         sys.exit(1)
     if 'network_interface_id' not in jsondata:
         sys.stderr.write(
             'metwork_interface id is required to disable anti-spoofing on network-interfaces')
         sys.exit(1)
     allow_ip_spoofing(
-        jsondata['zone'], jsondata['instance_id'], jsondata['network_interface_id'])
+        jsondata['region'], jsondata['instance_id'], jsondata['network_interface_id'])
 
 
 if __name__ == '__main__':
