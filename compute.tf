@@ -83,97 +83,106 @@ locals {
     for num in range(0, local.snat_subnet_addresses_count):
       cidrhost(data.ibm_is_subnet.f5_snat_subnet_data[0].ipv4_cidr_block, num)
   ]
-  
+  snat_pool_addresses_csl = join(",", local.snat_pool_addresses)
   virtual_subnet_addresses_count = var.external_virtual_address_count == 1 ? 0 : var.external_virtual_address_count
   virtual_service_addresses = [
     for num in range(0, local.virtual_subnet_addresses_count):
       cidrhost(data.ibm_is_subnet.f5_vip_subnet_data[0].ipv4_cidr_block, num)
   ]
-
+  virtual_service_addresses_csl = join(",", local.virtual_service_addresses)
 }
 
+data "http" "user_data_template" {
+  url = var.user_data_template_url
+  request_headers = local.http_headers_2
+}
 
-#data "http" "user_data_template" {
-#  url = vars.user_data_template_url
-#  request_headers = local.http_headers_2
-#}
-
-#data "template_file" "user_data" {
-#  template = data.http.user_data_template.body
-#  vars = {
-#    tmos_admin_password       = local.admin_password
-#    phone_home_url            = local.phone_home_url
-#    zone                      = data.ibm_is_subnet.f5_managment_subnet.zone
-#    vpc                       = data.ibm_is_subnet.f5_managment_subnet.vpc
-#    management_subnet_cidr    = data.ibm_is_subnet.f5_management_subnet.ipv4_cidr_block
-#    cluster_subnet_cidr       = data.ibm_is_subnet.f5_cluster_subnet.ipv4_cidr_block
-#    internal_subnet_cidr      = data.ibm_is_subnet.f5_internal_subnet.ipv4_cidr_block
-#    snat_pool_addresses       = local.snat_pool_addresses
-#    external_subnet_cidr      = data.ibm_is_subnet.f5_external_subnet.ipv4_cidr_block
-#    virtual_service_addresses = local.virtual_service_addresses
-#    app_id                    = var.app_id
-#  }
-#}
+data "template_file" "user_data" {
+  template = data.http.user_data_template.body
+  vars = {
+    tmos_admin_password            = local.admin_password
+    phone_home_url                 = local.phone_home_url
+    zone                           = data.ibm_is_subnet.f5_management_subnet.zone
+    vpc                            = data.ibm_is_subnet.f5_management_subnet.vpc
+    management_subnet_cidr         = data.ibm_is_subnet.f5_management_subnet.ipv4_cidr_block
+    cluster_subnet_cidr            = data.ibm_is_subnet.f5_cluster_subnet.ipv4_cidr_block
+    internal_subnet_cidr           = data.ibm_is_subnet.f5_internal_subnet.ipv4_cidr_block
+    snat_pool_addresses            = "[${local.snat_pool_addresses_csl}]"
+    external_subnet_cidr           = data.ibm_is_subnet.f5_external_subnet.ipv4_cidr_block
+    virtual_service_addresses      = "[${local.virtual_service_addresses_csl}]"
+    appid                          = var.appid
+  }
+}
 
 # create compute instance
-#resource "ibm_is_instance" "f5_ve_instance" {
-#  name    = var.instance_name
-#  image   = local.image_id
-#  profile = data.ibm_is_instance_profile.instance_profile.id
-#  primary_network_interface {
-#    name            = "management"
-#    subnet          = data.ibm_is_subnet.f5_managment_subnet.id
-#    security_groups = [ibm_is_security_group.f5_open_sg.id]
-#  }
-#  dynamic "network_interfaces" {
-#    for_each = local.secondary_subnets
-#    content {
-#      name            = format("data-1-%d", (network_interfaces.key + 1))
-#      subnet          = network_interfaces.value
-#      security_groups = [ibm_is_security_group.f5_open_sg.id]
-#    }
-#  }
-#  vpc        = data.ibm_is_subnet.f5_managment_subnet.vpc
-#  zone       = data.ibm_is_subnet.f5_managment_subnet.zone
-#  keys       = [data.ibm_is_ssh_key.ssh_pub_key.id]
-#  user_data  = data.template_file.user_data.rendered
-#  depends_on = [ibm_is_security_group_rule.f5_allow_outbound]
-#  timeouts {
-#    create = "60m"
-#    delete = "120m"
-#  }
-#}
+resource "ibm_is_instance" "f5_ve_instance" {
+  name    = var.instance_name
+  image   = local.image_id
+  profile = data.ibm_is_instance_profile.instance_profile.id
+  primary_network_interface {
+    name            = "management"
+    subnet          = data.ibm_is_subnet.f5_management_subnet.id
+    security_groups = [ibm_is_security_group.f5_open_sg.id]
+  }
+  dynamic "network_interfaces" {
+    for_each = local.secondary_subnets
+    content {
+      name              = format("data-1-%d", (network_interfaces.key + 1))
+      subnet            = network_interfaces.value
+      security_groups   = [ibm_is_security_group.f5_open_sg.id]
+      allow_ip_spoofing = true
+    }
+  }
+  vpc        = data.ibm_is_subnet.f5_management_subnet.vpc
+  zone       = data.ibm_is_subnet.f5_management_subnet.zone
+  keys       = [data.ibm_is_ssh_key.ssh_pub_key.id]
+  user_data  = data.template_file.user_data.rendered
+  depends_on = [ibm_is_security_group_rule.f5_allow_outbound]
+  timeouts {
+    create = "60m"
+    delete = "120m"
+  }
+}
 
-#resource "ibm_is_vpc_routing_table_route" "f5_snap_pool_next_hop" {
-#  depends_on    = [ibm_is_subnet.f5_internal_subnet]
-#  vpc           = ibm_is_subnet.f5_internal_subnet.vpc
-#  routing_table = ibm_is_vpc_routing_table.f5_snat_route.routing_table
-#  zone          = ibm_is_subnet.f5_internal_subnet.zone
-#  next_hop      = ibm_is_instance.network_interfaces[1].primary_ipv4_address
-#  action        = "deliver"
-#  destination   = 
-#}
+resource "ibm_is_vpc_routing_table_route" "injected_snat_routes" {
+  count = length(var.routing_table_ids)
+  vpc = data.ibm_is_subnet.f5_internal_subnet.vpc
+  zone = data.ibm_is_subnet.f5_internal_subnet.zone
+  routing_table = var.routing_table_ids[count.index]
+  action = "deliver"
+  destination = data.ibm_is_subnet.f5_snat_subnet_data[0].ipv4_cidr_block
+  next_hop = ibm_is_instance.f5_ve_instance.network_interfaces[1].primary_ipv4_address
+}
 
+resource "ibm_is_vpc_routing_table_route" "injected_vip_routes" {
+  count = length(var.routing_table_ids)
+  vpc = data.ibm_is_subnet.f5_external_subnet.vpc
+  zone = data.ibm_is_subnet.f5_external_subnet.zone
+  routing_table = var.routing_table_ids[count.index]
+  action = "deliver"
+  destination = data.ibm_is_subnet.f5_vip_subnet_data[0].ipv4_cidr_block
+  next_hop = ibm_is_instance.f5_ve_instance.network_interfaces[2].primary_ipv4_address
+}
 
-#output "resource_name" {
-#  value = ibm_is_instance.f5_ve_instance.name
-#}
+output "resource_name" {
+  value = ibm_is_instance.f5_ve_instance.name
+}
 
-#output "resource_status" {
-#  value = ibm_is_instance.f5_ve_instance.status
-#}
+output "resource_status" {
+  value = ibm_is_instance.f5_ve_instance.status
+}
 
-#output "VPC" {
-#  value = ibm_is_instance.f5_ve_instance.vpc
-#}
+output "VPC" {
+  value = ibm_is_instance.f5_ve_instance.vpc
+}
 
 output "image_id" {
   value = local.image_id
 }
 
-#output "instance_id" {
-#  value = ibm_is_instance.f5_ve_instance.id
-#}
+output "instance_id" {
+  value = ibm_is_instance.f5_ve_instance.id
+}
 
 output "profile_id" {
   value = data.ibm_is_instance_profile.instance_profile.id
@@ -186,13 +195,6 @@ output "snat_pool_addresses" {
 output "virtual_service_addresses" {
   value = local.virtual_service_addresses
 }
-
-#output "f5_shell_access" {
-#  value = "ssh://root@${ibm_is_floating_ip.f5_management_floating_ip.address}"
-#}
-
 output "f5_phone_home_url" {
   value = var.phone_home_url
 }
-
-

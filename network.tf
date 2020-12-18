@@ -1,4 +1,4 @@
-data "ibm_is_subnet" "f5_managment_subnet" {
+data "ibm_is_subnet" "f5_management_subnet" {
   identifier = var.management_subnet_id
 }
 
@@ -23,8 +23,8 @@ resource "random_uuid" "namer" {}
 // open up port security security group
 resource "ibm_is_security_group" "f5_open_sg" {
   name           = "sg-${random_uuid.namer.result}"
-  vpc            = data.ibm_is_subnet.f5_managment_subnet.vpc
-  resource_group = data.ibm_is_subnet.f5_managment_subnet.resource_group
+  vpc            = data.ibm_is_subnet.f5_management_subnet.vpc
+  resource_group = data.ibm_is_subnet.f5_management_subnet.resource_group
 }
 
 // allow all inbound
@@ -46,7 +46,7 @@ resource "ibm_is_security_group_rule" "f5_allow_outbound" {
 // SNAT Pools Subnet
 
 resource "ibm_is_subnet" "f5_snat_subnet" {
-  name = "f5-snat-subnet-unique-goes-here"
+  name = "f5-snat-subnet-${uuid()}"
   count = var.internal_snat_pool_count == 1 ? 0 : 1
   vpc = data.ibm_is_subnet.f5_internal_subnet.vpc
   zone = data.ibm_is_subnet.f5_internal_subnet.zone
@@ -65,7 +65,7 @@ data "ibm_is_subnet" "f5_snat_subnet_data" {
 // Virtual Addresses Subnet
 
 resource "ibm_is_subnet" "f5_vip_subnet" {
-  name = "f5-vip-subnet-unique-goes-here"
+  name = "f5-vip-subnet-${uuid()}"
   count = var.external_virtual_address_count == 1 ? 0 : 1
   vpc = data.ibm_is_subnet.f5_external_subnet.vpc
   zone = data.ibm_is_subnet.f5_external_subnet.zone

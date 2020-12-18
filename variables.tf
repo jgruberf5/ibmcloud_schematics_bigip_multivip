@@ -7,11 +7,11 @@ variable "region" {
   description = "The VPC region to instatiate the F5 BIG-IP instance"
 }
 # Present for CLI testng
-variable "api_key" {
-  type        = string
-  default     = "G6KI2sTEj6BxvCiUkc5SfTKOjy2oDoFHj-r-FkGg73b8"
-  description = "IBM Public Cloud API KEY"
-}
+#variable "api_key" {
+#  type        = string
+#  default     = ""
+#  description = "IBM Public Cloud API KEY"
+#}
 
 ##################################################################################
 # resource_group - The IBM Cloud resource group to create the F5 BIG-IP instance
