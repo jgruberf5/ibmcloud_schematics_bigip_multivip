@@ -128,19 +128,19 @@ resource "ibm_is_instance" "f5_ve_instance" {
     name            = "data-cluster"
     subnet          = data.ibm_is_subnet.f5_cluster_subnet.id
     security_groups = [ibm_is_security_group.f5_open_sg.id]
-    allow_ip_spoofing = true
+#    allow_ip_spoofing = true
   }
   network_interfaces {
     name            = "data-internal"
     subnet          = data.ibm_is_subnet.f5_internal_subnet.id
     security_groups = [ibm_is_security_group.f5_open_sg.id]
-    allow_ip_spoofing = true
+#    allow_ip_spoofing = true
   }
   network_interfaces {
     name            = "data-external"
     subnet          = data.ibm_is_subnet.f5_external_subnet.id
     security_groups = [ibm_is_security_group.f5_open_sg.id]
-    allow_ip_spoofing = true
+#    allow_ip_spoofing = true
   }
   vpc        = data.ibm_is_subnet.f5_management_subnet.vpc
   zone       = data.ibm_is_subnet.f5_management_subnet.zone
@@ -154,6 +154,7 @@ resource "ibm_is_instance" "f5_ve_instance" {
 
 resource "ibm_is_vpc_routing_table_route" "injected_snat_routes" {
   count         = length(var.routing_table_ids)
+  name          = "snat-route-${uuid()}"
   vpc           = data.ibm_is_subnet.f5_internal_subnet.vpc
   zone          = data.ibm_is_subnet.f5_internal_subnet.zone
   routing_table = var.routing_table_ids[count.index]
@@ -164,12 +165,40 @@ resource "ibm_is_vpc_routing_table_route" "injected_snat_routes" {
 
 resource "ibm_is_vpc_routing_table_route" "injected_vip_routes" {
   count         = length(var.routing_table_ids)
+  name          = "vip-route-${uuid()}"
   vpc           = data.ibm_is_subnet.f5_external_subnet.vpc
   zone          = data.ibm_is_subnet.f5_external_subnet.zone
   routing_table = var.routing_table_ids[count.index]
   action        = "deliver"
   destination   = data.ibm_is_subnet.f5_vip_subnet_data[0].ipv4_cidr_block
   next_hop      = ibm_is_instance.f5_ve_instance.network_interfaces[2].primary_ipv4_address
+}
+
+output "routing_table_id_0" {
+  value = var.routing_table_ids[0]
+}
+
+output "routing_table_id_1" {
+  value = var.routing_table_ids[1]
+}
+
+output "routing_table_id_2" {
+  value = var.routing_table_ids[2]
+}
+output "vip_routing_destination" {
+  value = data.ibm_is_subnet.f5_vip_subnet_data[0].ipv4_cidr_block
+}
+
+output "vip_route_next_hop" {
+  value = ibm_is_instance.f5_ve_instance.network_interfaces[2].primary_ipv4_address
+}
+
+output "snat_routing_destination" {
+  value = data.ibm_is_subnet.f5_snat_subnet_data[0].ipv4_cidr_block
+}
+
+output "snat_route_next_hop" {
+  value = ibm_is_instance.f5_ve_instance.network_interfaces[1].primary_ipv4_address
 }
 
 output "resource_name" {
