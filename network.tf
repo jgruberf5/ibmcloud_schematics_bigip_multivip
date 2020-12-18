@@ -46,7 +46,6 @@ resource "ibm_is_security_group_rule" "f5_allow_outbound" {
 // SNAT Pools Subnet
 
 resource "ibm_is_subnet" "f5_snat_subnet" {
-  depends_on = [ibm_is_subnet.f5_internal_subnet]
   count = var.internal_snat_pool_count == 1 ? 0 : 1
   vpc = ibm_is_subnet.f5_internal_subnet.vpc
   zone = ibm_is_subnet.f5_internal_subnet.zone
@@ -64,7 +63,6 @@ data "ibm_is_subnet" "f5_snat_subnet_data" {
 // Virtual Addresses Subnet
 
 resource "ibm_is_subnet" "f5_vip_subnet" {
-  depends_on = [ibm_is_subnet.f5_external_subnet]
   count = var.external_virtual_address_count == 1 ? 0 : 1
   vpc = ibm_is_subnet.f5_external_subnet.vpc
   zone = ibm_is_subnet.f5_external_subnet.zone
