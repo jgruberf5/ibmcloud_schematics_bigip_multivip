@@ -7,10 +7,11 @@ chpasswd:
 tmos_dhcpv4_tmm:
   enabled: true
   rd_enabled: false
+  inject_routes: false
   configsync_interface: 1.1
   default_route_interface: 1.3
   dhcp_timeout: 120
-  inject_routes: false
-  icontrollx_trusted_sources: false
   do_enabled: false
   as3_enabled: false
+  phone_home_url: ${phone_home_url}
+  phone_home_url_verify_tls: false
