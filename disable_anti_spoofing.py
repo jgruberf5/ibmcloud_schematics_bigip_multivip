@@ -28,7 +28,7 @@ def allow_ip_spoofing(zone, instance_id, network_interface_id):
                 'PATCH request to allow_ip_spoofing failed with result code: %d' % res.code)
             sys.exit(1)
     except Exception as ex:
-        sys.stderr.write('Error getting imstance details: %s' % ex)
+        sys.stderr.write('Error allowing ip spoofing on %s - %s : %s' % (instance_url, token, ex))
         sys.exit(1)
 
 
