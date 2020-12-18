@@ -128,7 +128,6 @@ resource "ibm_is_instance" "f5_ve_instance" {
     name            = "data-cluster"
     subnet          = data.ibm_is_subnet.f5_cluster_subnet.id
     security_groups = [ibm_is_security_group.f5_open_sg.id]
-#    allow_ip_spoofing = true
   }
   network_interfaces {
     name            = "data-internal"
@@ -149,6 +148,26 @@ resource "ibm_is_instance" "f5_ve_instance" {
   timeouts {
     create = "60m"
     delete = "120m"
+  }
+}
+
+data "external" "disable_anti_spoofing_internal" {
+  depends_on = [ibm_is_instance.f5_ve_instance]
+  program = ["python", "${path.module}/disable_anti_spoofing.py"]
+  query = {
+    "instance_id" = ibm_is_instance.f5_ve_instance.id
+    "zone" = data.ibm_is_subnet.f5_management_subnet.zone
+    "network_interface_id" = ibm_is_instance.f5_ve_instance.network_interfaces[1].id
+  }
+}
+
+data "external" "disable_anti_spoofing_external" {
+  depends_on = [ibm_is_instance.f5_ve_instance]
+  program = ["python", "${path.module}/disable_anti_spoofing.py"]
+  query = {
+    "instance_id" = ibm_is_instance.f5_ve_instance.id
+    "zone" = data.ibm_is_subnet.f5_management_subnet.zone
+    "network_interface_id" = ibm_is_instance.f5_ve_instance.network_interfaces[2].id
   }
 }
 
