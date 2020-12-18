@@ -1,8 +1,8 @@
 #cloud-config
 chpasswd:
   list: |
-    root:f5c0nfig
-    admin:f5c0nfig
+    root:${tmos_admin_password}
+    admin:${tmos_admin_password}
   expire: False
 tmos_dhcpv4_tmm:
   enabled: true
