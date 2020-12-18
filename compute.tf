@@ -81,13 +81,13 @@ locals {
   snat_subnet_addresses_count = var.internal_snat_pool_count == 1 ? 0 : var.internal_snat_pool_count
   snat_pool_addresses = [
     for num in range(0, local.snat_subnet_addresses_count):
-      cidrhost(data.ibm_is_subnet.f5_snat_subnet_data.ipv4_cidr_block, num)
+      cidrhost(data.ibm_is_subnet.f5_snat_subnet_data[0].ipv4_cidr_block, num)
   ]
   
   virtual_subnet_addresses_count = var.external_virtual_address_count == 1 ? 0 : var.external_virtual_address_count
   virtual_service_addresses = [
     for num in range(0, local.virtual_subnet_addresses_count):
-      cidrhost(data.ibm_is_subnet.f5_vip_subnet_data.ipv4_cidr_block, num)
+      cidrhost(data.ibm_is_subnet.f5_vip_subnet_data[0].ipv4_cidr_block, num)
   ]
 
 }
