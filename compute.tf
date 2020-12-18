@@ -150,27 +150,6 @@ resource "ibm_is_instance" "f5_ve_instance" {
     delete = "120m"
   }
 }
-
-#data "external" "disable_anti_spoofing_internal" {
-#  depends_on = [ibm_is_instance.f5_ve_instance]
-#  program = ["python", "${path.module}/disable_anti_spoofing.py"]
-#  query = {
-#    "instance_id" = ibm_is_instance.f5_ve_instance.id
-#    "region" = var.region
-#    "network_interface_id" = ibm_is_instance.f5_ve_instance.network_interfaces[1].id
-#  }
-#}
-
-#data "external" "disable_anti_spoofing_external" {
-#  depends_on = [ibm_is_instance.f5_ve_instance]
-#  program = ["python", "${path.module}/disable_anti_spoofing.py"]
-#  query = {
-#    "instance_id" = ibm_is_instance.f5_ve_instance.id
-#    "region" = var.region
-#    "network_interface_id" = ibm_is_instance.f5_ve_instance.network_interfaces[2].id
-#  }
-#}
-
 resource "ibm_is_vpc_routing_table_route" "injected_snat_routes" {
   count         = length(var.routing_table_ids)
   name          = "snat-route-${uuid()}"
