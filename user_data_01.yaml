@@ -15,3 +15,12 @@ tmos_dhcpv4_tmm:
   as3_enabled: false
   phone_home_url: ${phone_home_url}
   phone_home_url_verify_tls: false
+  # zone: ${zone}
+  # vpc: ${vpc}
+  # management_subnet_cidr: ${management_subnet_cidr}
+  # cluster_subnet_cidr: ${cluster_subnet_cidr}
+  # internal_subnet_cidr: ${cluster_subnet_cidr}
+  # snat_pool_addresses: ${snat_pool_addresses}
+  # external_subnet_cidr: ${external_subnet_cidr}
+  # virtual_service_addresses: ${virutal_service_addresses}
+  # appid: ${appid}
