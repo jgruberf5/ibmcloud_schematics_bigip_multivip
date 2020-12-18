@@ -208,7 +208,7 @@ output "management_subnet_cidr" {
   value = data.ibm_is_subnet.f5_management_subnet.ipv4_cidr_block
 }
 output "management_ip" {
-  value = ibm_is_instance.f5_ve_instance.primary_network_interface.primary_ipv4_address
+  value = ibm_is_instance.f5_ve_instance.primary_network_interface[0].primary_ipv4_address
 }
 output "cluster_subnet_cidr" {
   value = data.ibm_is_subnet.f5_cluster_subnet.ipv4_cidr_block
