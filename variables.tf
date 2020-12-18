@@ -104,7 +104,7 @@ variable "internal_snat_pool_count" {
   description = "Can be 1 (Automap), 2 (/31), 4 (/30), 8 (/29), 16 (/28)"
   validation {
     condition = contains([1,2,4,6,8,16], var.internal_snat_pool_count)
-    error_message = "internal_snat_pool_count can be 1 (automap), 2, 4, 8, 16"
+    error_message = "Variable internal_snat_pool_count can be 1 (automap), 2, 4, 8, 16."
   }
 }
 
@@ -126,7 +126,7 @@ variable "external_virtual_address_count" {
   description = "Can be 1 (SelfIP), 2 (/31), 4 (/30), 8 (/29), 16 (/28)"
   validation {
     condition = contains([1,2,4,6,8,16], var.external_virtual_address_count)
-    error_message = "external_virtual_address_count can be 1 (automap), 2, 4, 8, 16"
+    error_message = "Variable external_virtual_address_count can be 1 (automap), 2, 4, 8, 16."
   }
 }
 
