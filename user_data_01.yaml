@@ -22,5 +22,5 @@ tmos_dhcpv4_tmm:
   # internal_subnet_cidr: ${cluster_subnet_cidr}
   # snat_pool_addresses: ${snat_pool_addresses}
   # external_subnet_cidr: ${external_subnet_cidr}
-  # virtual_service_addresses: ${virutal_service_addresses}
+  # virtual_service_addresses: ${virtual_service_addresses}
   # appid: ${appid}
