@@ -1,0 +1,28 @@
+#cloud-config
+chpasswd:
+  list: |
+    root:${tmos_admin_password}
+    admin:${tmos_admin_password}
+  expire: False
+tmos_dhcpv4_tmm:
+  enabled: true
+  icontrollx_trusted_sources: false
+  rd_enabled: false
+  inject_routes: false
+  configsync_interface: 1.1
+  default_route_interface: 1.3
+  dhcp_timeout: 120
+  do_enabled: true
+  as3_enabled: true
+  ts_enabled: true
+  phone_home_url: ${phone_home_url}
+  phone_home_url_verify_tls: false
+  # zone: ${zone}
+  # vpc: ${vpc}
+  # management_subnet_cidr: ${management_subnet_cidr}
+  # cluster_subnet_cidr: ${cluster_subnet_cidr}
+  # internal_subnet_cidr: ${cluster_subnet_cidr}
+  # snat_pool_addresses: ${snat_pool_addresses}
+  # external_subnet_cidr: ${external_subnet_cidr}
+  # virtual_service_addresses: ${virtual_service_addresses}
+  # appid: ${appid}
