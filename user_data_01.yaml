@@ -11,8 +11,9 @@ tmos_dhcpv4_tmm:
   configsync_interface: 1.1
   default_route_interface: 1.3
   dhcp_timeout: 120
-  do_enabled: false
-  as3_enabled: false
+  do_enabled: true
+  as3_enabled: true
+  ts_enabled: true
   phone_home_url: ${phone_home_url}
   phone_home_url_verify_tls: false
   # zone: ${zone}
